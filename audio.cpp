@@ -1,5 +1,6 @@
 #include <iostream>
 #include "AudioFile.h"
+#include <fftw3.h>
 
 using namespace std;
 
@@ -11,12 +12,13 @@ int main(int argc, char** argv) {
     //read in audio file
     AudioFile<double> audioFile;
     audioFile.load(argv[1]);
+    cout << "Input File Summary:\n";
     audioFile.printSummary();
+    int numSamples = audioFile.getNumSamplesPerChannel();
+    int numChannels = audioFile.getNumChannels();
 
     //turn audio to mono if not
     if(!audioFile.isMono()) {
-        int numSamples = audioFile.getNumSamplesPerChannel();
-        int numChannels = audioFile.getNumChannels();
         AudioFile<double>::AudioBuffer buffer;
         buffer.resize(1);
         buffer[0].resize(numSamples);
@@ -32,10 +34,16 @@ int main(int argc, char** argv) {
         audioFile.setNumChannels(1);
     }
 
+    for(int i = 0; i < numSamples; i++) {
+        audioFile.samples[0][i] *= 8;
+    }
+
+    //write audiofile
+    cout << "\n\n\nOutput File Summary:\n";
+    audioFile.printSummary();
     audioFile.save(argv[2]);
 
 
-    //write audiofile
 
     return 0;
 }
