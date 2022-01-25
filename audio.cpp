@@ -4,6 +4,7 @@
 #include <complex.h>
 #include <vector>
 #include <cmath>
+#include <algorithm>
 
 using namespace std;
 
@@ -18,17 +19,24 @@ void removeBand(vector<fftw_complex> &data, uint64_t start, uint64_t stop, int s
     if(startHz < 1) {
         startHz = 0;
     }
-    cout << start << "\n";
-    cout << stop << "\n";
-    cout << samplingRate << "\n";
-    cout << numSamples << "\n";
-    cout << startHz << " " << stopHz << "\n";
     for(uint64_t i = startHz; i < stopHz; i++) {
         data[i][0] = 0;
         data[i][1] = 0;
     }
 }
 
+void randomRemoveBands(vector<fftw_complex> &data, int numBands, int bandWidth, int samplingRate, int numSamples) {
+    vector<int> r;
+    for(int i = 0; i < 3000; i++) {
+        r.push_back(i);
+    }
+    random_shuffle(r.begin(), r.end());
+    for(int i = 0; i < numBands; i++) {
+        cout << r[i] << "-" << r[i]+bandWidth << "\n";
+        removeBand(data, r[i], r[i]+bandWidth, samplingRate, numSamples);
+    }
+
+}
 int main(int argc, char** argv) {
     if (argc < 3) {
         cerr << "Format is: ./audio INPUT_FILE OUTPUT_FILE\n";
@@ -72,14 +80,10 @@ int main(int argc, char** argv) {
     
     //do filtering here
     //removeBand(out, 240, 241, samplingRate, numSamples); 
-    //removeBand(out,100,125,samplingRate,numSamples);
-    //removeBand(out,275,300,samplingRate,numSamples);
-    //removeBand(out,400,425,samplingRate,numSamples);
-    //removeBand(out,700,725,samplingRate,numSamples);
-    //filtering out freq beyond human hearing
-    //removeBand(out, 0, 21, samplingRate, numSamples);
-    removeBand(out, 20000, (numSamples/2 +1), samplingRate, numSamples);
-    samplingRate++;
+    removeBand(out, 5000, numSamples, samplingRate, numSamples);
+    int numBands = atoi(argv[3]);
+    int bandWidth = atoi(argv[4]);
+    randomRemoveBands(out, numBands, bandWidth, samplingRate, numSamples);
     
     //do idft and some cleanup
     fftw_execute(q);
